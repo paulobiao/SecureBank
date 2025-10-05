@@ -1,0 +1,6 @@
+
+txn_id,user_id,amount,currency,mcc,ip,device_id,country,timestamp
+t1,alice,25,USD,5411,1.1.1.1,dev-1,US,2025-10-01T10:00:00Z
+t2,bob,7500,USD,4829,203.0.113.5,dev-9,BR,2025-10-01T10:05:00Z
+t3,carol,120,USD,7995,198.51.100.7,dev-7,US,2025-10-01T10:10:00Z
+t4,dave,30000,USD,6011,198.18.0.1,dev-3,DE,2025-10-01T10:12:00Z
