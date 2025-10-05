@@ -2,6 +2,8 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![HIPAA](https://img.shields.io/badge/Compliance-HIPAA-green)](#)
+[![Encryption](https://img.shields.io/badge/Feature-Encryption%20%26%202FA-blue)](#)
 
 # SecureBank™ – Financial Threat Detection System (Open Source)
 
