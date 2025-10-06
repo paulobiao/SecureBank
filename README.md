@@ -6,6 +6,8 @@
 [![HIPAA](https://img.shields.io/badge/Compliance-HIPAA-green)](#)
 [![Encryption](https://img.shields.io/badge/Feature-Encryption%20%26%202FA-blue)](#)
 
+> **Open-Source Cybersecurity Project by Paulo Bião** — Fintech threat detection system demonstrating secure API, anomaly detection, and compliance-aware design for EB2-NIW portfolio.
+
 # SecureBank™ – Financial Threat Detection System (Open Source)
 
 **Objective:** Detect suspicious financial activity and login abuse in (simulated) fintech/banking environments, with real‑time API alerts and explainable rule‑based scoring.
@@ -124,4 +126,26 @@ README.md
 - Integrate **OTX/VirusTotal** and add **time‑series** datastore (Postgres/Timescale).
 - Publish a **demo dashboard** (Plotly Dash) and **threat hunting notebook**.
 ```
+---
+
+## 🧠 Example Run
+
+Try a simple example after running the API locally:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/score \
+  -H "Content-Type: application/json" \
+  -d '{
+        "user_id": "u001",
+        "amount": 999.99,
+        "merchant": "ELC",
+        "ip": "198.51.100.20",
+        "device_id": "dev001"
+      }'
+{
+  "score": 80,
+  "reasons": ["High amount", "Electronics purchase", "Known suspicious IP range"],
+  "flags": {"high_risk": true}
+}
+
 
