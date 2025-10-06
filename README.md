@@ -6,6 +6,9 @@
 [![HIPAA](https://img.shields.io/badge/Compliance-HIPAA-green)](#)
 [![Encryption](https://img.shields.io/badge/Feature-Encryption%20%26%202FA-blue)](#)
 
+## 🖼️ API Docs
+![OpenAPI](docs/screenshots/openapi.png)
+
 > **Open-Source Cybersecurity Project by Paulo Bião** — Fintech threat detection system demonstrating secure API, anomaly detection, and compliance-aware design for EB2-NIW portfolio.
 
 # SecureBank™ – Financial Threat Detection System (Open Source)
