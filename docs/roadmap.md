@@ -1,21 +1,24 @@
+# 🧭 Roadmap — SecureBank™
 
-# Roadmap & Hardening
+## v0.1.0 (atual)
+- [x] API FastAPI base e health-check
+- [x] Score inicial (mock) + reason codes
+- [x] Estrutura de pastas (src/data/docs/tests) e Dockerfile
+- [x] CI básico (pytest) no GitHub Actions
 
-## Short Term
-- JWT auth and API keys
-- Rate limiting with Redis
-- Request/response audit logs
-- Postgres storage (Timescale optional)
-- Prometheus metrics + Grafana dashboard
-- OTX/VirusTotal enrichment
+## v0.2.0
+- [ ] Endpoints `/api/v1/score` e `/api/v1/score/batch` (CSV)
+- [ ] Regras: velocity (freq), geo-IP change, device mismatch, MCCs de alto risco
+- [ ] Threat intel: leitura de `data/threat_intel_blocklist.txt`
+- [ ] Testes de unidade para regras
 
-## Medium Term
-- Risk model calibration with historical distributions
-- Device fingerprinting and session anomaly detection
-- GeoIP provider and velocity limits by country
-- CICD: docker scan, bandit, safety, secret scanning
+## v0.3.0
+- [ ] Métricas Prometheus + dashboard Grafana (docker-compose)
+- [ ] Persistência opcional em PostgreSQL
+- [ ] Notebook de análise (docs/) com exemplo de investigação
 
-## Long Term
-- Streaming pipeline (Kafka) + Flink jobs
-- Real-time rule management (UI) and AB testing
-- Hybrid detection: rules + ML (XGBoost/LightGBM)
+## v1.0.0
+- [ ] Publicar imagem no Docker Hub
+- [ ] Documentação hospedada (Read the Docs)
+- [ ] Demo pública (Render/Fly.io) com endpoint somente leitura
+
