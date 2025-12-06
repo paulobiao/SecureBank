@@ -150,5 +150,21 @@ curl -X POST http://localhost:8000/api/v1/score \
   "reasons": ["High amount", "Electronics purchase", "Known suspicious IP range"],
   "flags": {"high_risk": true}
 }
+## SecureBank Simulation: TII / SAE / ITAL
+
+The repository includes a simulation module under `sim/securebank-sim/` that:
+- Generates synthetic financial transactions (normal + attacks)
+- Compares a traditional baseline PDP vs. SecureBank™ PDP
+- Computes three quantitative metrics:
+  - **Transactional Integrity Index (TII)**
+  - **Security Automation Efficiency (SAE)**
+  - **Identity Trust Adaptation Level (ITAL)**
+
+To run the simulator:
+
+```bash
+cd sim/securebank-sim
+python runner.py
+
 
 
