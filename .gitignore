@@ -1,16 +1,17 @@
-
-.venv/
+# Python
 __pycache__/
 *.pyc
-*.pyo
+.venv/
 .env
-.env.*
-*.sqlite
-*.db
+
+# Outputs / artifacts
+experiments/
+plots/
+sim/securebank-sim/experiments/
+sim/securebank-sim/plots/
+*.png
+*.csv
+
+# OS / editor
 .DS_Store
-dist/
-build/
 .vscode/
-.idea/
-coverage/
-*.log
