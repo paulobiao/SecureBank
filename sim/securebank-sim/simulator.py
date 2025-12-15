@@ -1,3 +1,4 @@
+# simulator.py
 import random
 from collections import defaultdict
 
@@ -17,6 +18,10 @@ SERVICES = [
 
 
 def generate_users():
+    """
+    Gera população sintética de usuários com base_risk diferente
+    para customers e employees.
+    """
     users = []
     for i in range(NUM_USERS):
         user_type = random.choice(["customer", "employee"])
@@ -66,6 +71,10 @@ def generate_devices(users):
 
 
 def generate_normal_transaction(user):
+    """
+    Gera uma transação "normal" para um usuário,
+    com valores log-normais e contexto simples (geo, hour, channel).
+    """
     service = random.choice(SERVICES)
     amount = random.lognormvariate(mu=3.0, sigma=0.7)  # tende a valores menores
     ctx = {
@@ -84,6 +93,15 @@ def generate_normal_transaction(user):
 
 
 def inject_attack(tx, ctx, scenario_id):
+    """
+    Injeta diferentes cenários de ataque sobre uma transação original.
+    Compatível com os cenários descritos no artigo:
+    - credential compromise
+    - insider lateral movement
+    - API abuse
+    - money laundering
+    - session hijacking
+    """
     tx = tx.copy()
     ctx = ctx.copy()
     tx["is_attack"] = True
@@ -113,7 +131,7 @@ def inject_attack(tx, ctx, scenario_id):
 
 def baseline_pdp(event):
     """
-    PDP tradicional: regrinhas simples.
+    PDP tradicional: regras simples e estáticas.
     Retorna: {"allowed": bool, "action": "allow"/"step_up"/"block"}
     """
     tx = event["tx"]
@@ -130,83 +148,140 @@ def baseline_pdp(event):
     return {"allowed": True, "action": "allow"}
 
 
-def securebank_pdp(event, state):
+def securebank_pdp(event, state, ital_params=None):
     """
-    SecureBank™ Policy Decision Point (PDP) – versão calibrada para:
-    - Aumentar SAE (mais incidentes tratados automaticamente);
-    - Manter TII próximo do baseline;
-    - Garantir ITAL > 0 (confiança cai sob ataque).
+    SecureBank PDP (Modo B - equilíbrio entre segurança e usabilidade)
+
+    Objetivos desta calibração:
+    - Aumentar SAE de forma consistente em relação ao baseline;
+    - Manter TII em faixa aceitável (poucos falsos positivos);
+    - Preservar o comportamento adaptativo do ITAL.
     """
+
     user = event["user"]
     device = event["device"]
     tx = event["tx"]
     ctx = event["ctx"]
 
-    # Confiança inicial de identidade e dispositivo (default 0.9)
+    if ital_params is None:
+        ital_params = {}
+
+    # Parâmetros de adaptação (podem ser afinados via config.json)
+    trust_decay = ital_params.get("trust_decay", 0.12)
+    trust_growth = ital_params.get("trust_growth", 0.20)
+    identity_drift_factor = ital_params.get("identity_drift_factor", 0.30)
+
+    # Confiança atual de identidade / dispositivo
     I_u = state["I"].get(user["id"], 0.9)
     D_d = state["D"].get(device["id"], 0.9)
 
     amount = tx["amount"]
+    user_base_risk = user.get("base_risk", 0.2)
+
     risk = 0.0
 
-    # 1) Risco baseado em valor da transação
-    if amount > 5_000:
-        risk += 0.2
-    if amount > 20_000:
-        risk += 0.3
-    if amount > 50_000:
-        risk += 0.3
+    # ------------------------------------------------------------------
+    # 1) Risco por valor (amount) - mais suave
+    # ------------------------------------------------------------------
+    if amount > 3_000:
+        risk += 0.15
+    if amount > 7_500:
+        risk += 0.15
+    if amount > 15_000:
+        risk += 0.20
+    if amount > 40_000:
+        risk += 0.20
 
-    # 2) Risco contextual (geo / horário)
+    # ------------------------------------------------------------------
+    # 2) Risco geográfico (peso reduzido)
+    # ------------------------------------------------------------------
     if ctx["geo"] not in ["US-FL", "US-NY", "US-CA", "BR-SP"]:
-        risk += 0.4
-    if ctx["hour"] < 5 or ctx["hour"] > 23:
-        risk += 0.2
+        risk += 0.25
 
-    # 3) Risco por canal e serviço
+    # ------------------------------------------------------------------
+    # 3) Horário atípico
+    # ------------------------------------------------------------------
+    if ctx["hour"] < 6 or ctx["hour"] > 22:
+        risk += 0.20
+
+    # ------------------------------------------------------------------
+    # 4) Canal / serviço (API com peso reduzido)
+    # ------------------------------------------------------------------
     if ctx["channel"] == "api":
-        risk += 0.25
+        risk += 0.15
 
-    if tx["service"] in ["settlement", "aml"] and amount > 10_000:
-        risk += 0.25
+    if tx["service"] in ["settlement", "aml"] and amount > 5_000:
+        risk += 0.30
 
-    # Clamp do risco em [0, 1]
-    risk = min(1.0, risk)
+    # ------------------------------------------------------------------
+    # 5) Identity drift (perfil de gasto do usuário)
+    # ------------------------------------------------------------------
+    profiles = state.setdefault("profiles", {})
+    prof = profiles.get(user["id"])
+    drift_risk = 0.0
 
-    # Confiança base = média de identidade e dispositivo
+    if prof is None:
+        # inicializa perfil
+        profiles[user["id"]] = {"avg_amount": amount, "count": 1}
+    else:
+        avg_amt = prof["avg_amount"]
+        denom = max(avg_amt, 1e-6)
+        drift_ratio = abs(amount - avg_amt) / denom
+
+        drift_risk = min(1.0, drift_ratio * identity_drift_factor)
+        risk += drift_risk
+
+        new_count = prof["count"] + 1
+        new_avg = prof["avg_amount"] + (amount - prof["avg_amount"]) / new_count
+        profiles[user["id"]] = {"avg_amount": new_avg, "count": new_count}
+
+    # ------------------------------------------------------------------
+    # 6) Componente de risco intrínseco do usuário
+    # ------------------------------------------------------------------
+    risk += 0.20 * user_base_risk
+
+    # Clamp de segurança
+    risk = max(0.0, min(1.0, risk))
+
+    # ------------------------------------------------------------------
+    # TRUST + DECISÃO
+    # ------------------------------------------------------------------
     base_trust = 0.5 * I_u + 0.5 * D_d
 
-    # Combinação: quanto maior o risco, mais reduzimos o theta
-    theta = base_trust - 0.5 * risk
+    # Penalização mais suave do que na versão "hard"
+    theta = base_trust - 0.30 * risk
     theta = max(0.0, min(1.0, theta))
 
-    # Decisão de política
-    if theta < 0.3:
+    # Thresholds de equilíbrio:
+    # - abaixo de 0.20: risco muito alto -> bloqueia
+    # - entre 0.20 e 0.55: risco intermediário -> step_up
+    # - acima de 0.55: permite
+    if theta < 0.20:
         action = "block"
         allowed = False
-    elif theta < 0.6:
-        action = "step_up"  # ex: MFA extra, revisão manual
+    elif theta < 0.55:
+        action = "step_up"
         allowed = False
     else:
         action = "allow"
         allowed = True
 
-    # --- Adaptação da confiança (ITAL) ---
-    # Alta suspeita -> queda forte de confiança
-    if risk > 0.6:
-        decay_I, decay_D = 0.2, 0.15
-        new_I = max(0.0, I_u * (1 - decay_I))
-        new_D = max(0.0, D_d * (1 - decay_D))
+    # ------------------------------------------------------------------
+    # ITAL: atualização da confiança
+    # ------------------------------------------------------------------
+    if risk > 0.55:
+        # eventos realmente suspeitos -> queda de confiança
+        new_I = max(0.0, I_u * (1 - trust_decay))
+        new_D = max(0.0, D_d * (1 - trust_decay * 0.8))
     else:
-        # Baixo/médio risco -> recuperação lenta em direção a 0.95
-        rec_I, rec_D = 0.05, 0.05
-        new_I = min(0.95, I_u + rec_I * (0.95 - I_u))
-        new_D = min(0.95, D_d + rec_D * (0.95 - D_d))
+        # eventos normais -> recuperação gradual até ~0.95
+        target = 0.95
+        new_I = min(target, I_u + trust_growth * (target - I_u))
+        new_D = min(target, D_d + trust_growth * (target - D_d))
 
     state["I"][user["id"]] = new_I
     state["D"][device["id"]] = new_D
 
-    # IMPORTANTÍSSIMO: esses campos são o que o compute_ital() usa
     return {
         "allowed": allowed,
         "action": action,
@@ -216,20 +291,37 @@ def securebank_pdp(event, state):
         "D_d": D_d,
         "new_I": new_I,
         "new_D": new_D,
+        "drift_risk": drift_risk,
+        "base_risk_component": 0.20 * user_base_risk,
     }
 
 
 def run_simulation(config):
     """
     Função principal da simulação.
-    Lê parâmetros de config (num_events, attack_probability) e
-    retorna dois vetores de logs: baseline e securebank.
+    Lê parâmetros de config (num_events, attack_probability, seed, scenarios)
+    e retorna dois vetores de logs: baseline e securebank.
     """
-    random.seed(42)
+    # Seed para reprodutibilidade científica
+    seed = config.get("seed", 42)
+    random.seed(seed)
 
     # Parâmetros vindos do JSON (com defaults)
     num_events = config.get("num_events", NUM_STEPS)
     attack_prob = config.get("attack_probability", ATTACK_PROB)
+
+    ital_params = config.get("ital_params", {})
+    scenarios_cfg = config.get("scenarios", {})
+
+    # mapeia cenários do JSON para IDs internos
+    scenario_flags = {
+        1: scenarios_cfg.get("enable_credential_compromise", True),
+        2: scenarios_cfg.get("enable_insider_movement", True),
+        3: scenarios_cfg.get("enable_api_abuse", True),
+        4: scenarios_cfg.get("enable_money_laundering", True),
+        5: scenarios_cfg.get("enable_session_hijacking", True),
+    }
+    active_scenarios = [sid for sid, enabled in scenario_flags.items() if enabled]
 
     users = generate_users()
     devices = generate_devices(users)
@@ -242,8 +334,8 @@ def run_simulation(config):
     baseline_logs = []
     securebank_logs = []
 
-    # Estado interno do SecureBank™ (confiança por usuário/dispositivo)
-    sb_state = {"I": {}, "D": {}}
+    # Estado interno do SecureBank™ (confiança + perfil de identidade)
+    sb_state = {"I": {}, "D": {}, "profiles": {}}
 
     for _ in range(num_events):
         user = random.choice(users)
@@ -253,10 +345,12 @@ def run_simulation(config):
         tx, ctx = generate_normal_transaction(user)
 
         # Decide se injeta ataque
-        is_attack = random.random() < attack_prob
+        is_attack = False
         scenario = None
-        if is_attack:
-            scenario = random.randint(1, 5)
+
+        if active_scenarios and random.random() < attack_prob:
+            is_attack = True
+            scenario = random.choice(active_scenarios)
             tx, ctx = inject_attack(tx, ctx, scenario)
 
         event = {
@@ -268,36 +362,91 @@ def run_simulation(config):
             "is_attack": is_attack,
         }
 
-        # --------- Baseline ---------
+        # Baseline
         base_decision = baseline_pdp(event)
-        baseline_logs.append(
-            {
-                "user_id": user["id"],
-                "device_id": device["id"],
-                "is_attack": is_attack,
-                "scenario": scenario,
-                "allowed": base_decision["allowed"],
-                "action": base_decision["action"],
-                # se no futuro quisermos ITAL básico, dá pra adicionar I/D fixos aqui
-            }
-        )
+        baseline_logs.append({**event, **base_decision})
 
-        # --------- SecureBank ---------
-        sb_decision = securebank_pdp(event, sb_state)
-        securebank_logs.append(
-            {
-                "user_id": user["id"],
-                "device_id": device["id"],
-                "is_attack": is_attack,
-                "scenario": scenario,
-                "amount": tx["amount"],
-                "geo": ctx["geo"],
-                "hour": ctx["hour"],
-                "channel": ctx["channel"],
-                "service": tx["service"],
-                # campos usados por TII/SAE/ITAL:
-                **sb_decision,
-            }
-        )
+        # SecureBank
+        sb_decision = securebank_pdp(event, sb_state, ital_params)
+        securebank_logs.append({**event, **sb_decision})
 
     return baseline_logs, securebank_logs
+
+
+def run_simulation_with_pdp(config, pdp_func, pdp_state=None):
+    """
+    Executa simulação com um PDP customizado.
+    
+    Args:
+        config: configuração da simulação
+        pdp_func: função PDP (event, state, config) -> decision
+        pdp_state: estado inicial do PDP (opcional)
+    
+    Returns:
+        logs da simulação
+    """
+    # Seed para reprodutibilidade científica
+    seed = config.get("seed", 42)
+    random.seed(seed)
+
+    # Parâmetros vindos do JSON (com defaults)
+    num_events = config.get("num_events", NUM_STEPS)
+    attack_prob = config.get("attack_probability", ATTACK_PROB)
+
+    ital_params = config.get("ital_params", {})
+    scenarios_cfg = config.get("scenarios", {})
+
+    # mapeia cenários do JSON para IDs internos
+    scenario_flags = {
+        1: scenarios_cfg.get("enable_credential_compromise", True),
+        2: scenarios_cfg.get("enable_insider_movement", True),
+        3: scenarios_cfg.get("enable_api_abuse", True),
+        4: scenarios_cfg.get("enable_money_laundering", True),
+        5: scenarios_cfg.get("enable_session_hijacking", True),
+    }
+    active_scenarios = [sid for sid, enabled in scenario_flags.items() if enabled]
+
+    users = generate_users()
+    devices = generate_devices(users)
+
+    # índice rápido: user_id -> lista de devices
+    devices_by_owner = defaultdict(list)
+    for d in devices:
+        devices_by_owner[d["owner_id"]].append(d)
+
+    logs = []
+
+    # Estado interno do PDP
+    if pdp_state is None:
+        pdp_state = {}
+
+    for _ in range(num_events):
+        user = random.choice(users)
+        user_devices = devices_by_owner[user["id"]]
+        device = random.choice(user_devices)
+
+        tx, ctx = generate_normal_transaction(user)
+
+        # Decide se injeta ataque
+        is_attack = False
+        scenario = None
+
+        if active_scenarios and random.random() < attack_prob:
+            is_attack = True
+            scenario = random.choice(active_scenarios)
+            tx, ctx = inject_attack(tx, ctx, scenario)
+
+        event = {
+            "user": user,
+            "device": device,
+            "tx": tx,
+            "ctx": ctx,
+            "scenario": scenario,
+            "is_attack": is_attack,
+        }
+
+        # PDP customizado
+        decision = pdp_func(event, pdp_state, ital_params)
+        logs.append({**event, **decision})
+
+    return logs

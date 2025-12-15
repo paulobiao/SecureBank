@@ -1,0 +1,5 @@
+
+# One entry per line. Can be IPs, user IDs, device IDs, or emails.
+203.0.113.5
+fraudster@example.com
+dev-666

@@ -1,0 +1,46 @@
+{
+  "total_transactions": 10000,
+  "fraud_transactions": 350,
+  "fraud_rate": 0.035,
+  "date_range": {
+    "start": "2024-01-01T02:50:00.864411",
+    "end": "2025-05-19T22:22:05.856535"
+  },
+  "amount_statistics": {
+    "mean": 352.071332,
+    "median": 94.225,
+    "std": 1218.7653049237063,
+    "min": 5.0,
+    "max": 21219.7
+  },
+  "fraud_scenarios": {
+    "card_theft": 56,
+    "money_laundering": 54,
+    "synthetic_identity": 52,
+    "api_abuse": 51,
+    "insider_lateral_movement": 50,
+    "session_hijacking": 49,
+    "credential_compromise": 38
+  },
+  "services": {
+    "payments": 2537,
+    "credit_card": 1788,
+    "wire_transfer": 1165,
+    "settlement": 1025,
+    "debit_card": 1016,
+    "aml": 812,
+    "customer_identity": 684,
+    "mobile_payment": 499,
+    "risk_analytics": 474
+  },
+  "channels": {
+    "mobile": 3380,
+    "web": 2998,
+    "api": 1590,
+    "atm": 1035,
+    "pos": 997
+  },
+  "unique_users": 1000,
+  "unique_devices": 1033,
+  "unique_cards": 1300
+}

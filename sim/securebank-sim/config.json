@@ -1,14 +1,36 @@
 {
-    "num_events": 5000,
-    "attack_probability": 0.06,
-    "ctx_weight": 0.25,
-    "device_weight": 0.25,
-    "transaction_weight": 0.25,
-    "scenario_weight": 0.25,
+  "experiment_name": "SecureBank_Simulation_v1.0",
+  "description": "TII/SAE/ITAL evaluation with contextual risk factors, identity drift and adaptive trust.",
+  "version": "1.0",
 
-    "ital_params": {
-        "identity_drift_factor": 0.8,
-        "trust_decay": 0.12,
-        "trust_growth": 0.25
-    }
+  "seed": 42,
+  "num_runs": 30,
+
+  "num_events": 5000,
+  "attack_probability": 0.06,
+
+  "ital_params": {
+    "identity_drift_factor": 0.8,
+    "trust_decay": 0.12,
+    "trust_growth": 0.25,
+    "ctx_weight": 0.25,
+    "transaction_weight": 0.25,
+    "device_weight": 0.25,
+    "scenario_weight": 0.25
+  },
+
+  "logging": {
+    "save_timeline": true,
+    "save_stats": true,
+    "save_csv": true,
+    "save_plots": true
+  },
+
+  "scenarios": {
+    "enable_credential_compromise": true,
+    "enable_insider_movement": true,
+    "enable_api_abuse": true,
+    "enable_money_laundering": true,
+    "enable_session_hijacking": true
+  }
 }

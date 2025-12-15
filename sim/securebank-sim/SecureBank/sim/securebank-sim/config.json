@@ -1,0 +1,14 @@
+{
+    "num_events": 5000,
+    "attack_probability": 0.06,
+    "ctx_weight": 0.25,
+    "device_weight": 0.25,
+    "transaction_weight": 0.25,
+    "scenario_weight": 0.25,
+
+    "ital_params": {
+        "identity_drift_factor": 0.8,
+        "trust_decay": 0.12,
+        "trust_growth": 0.25
+    }
+}
