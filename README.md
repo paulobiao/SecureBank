@@ -53,6 +53,15 @@ Detect suspicious financial activity and identity abuse in **simulated banking a
 - MIT open-source license
 
 ---
+## 🧪 Scientific Validation
+
+The SecureBank™ framework is supported by a full Monte Carlo–based
+statistical validation module, including hypothesis testing,
+effect size analysis, and publication-ready visualizations.
+
+See: `sim/securebank-sim/README.md`
+
+---
 
 ##  System Architecture
 
