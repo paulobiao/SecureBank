@@ -39,7 +39,7 @@ Detect suspicious financial activity and identity abuse in **simulated banking a
 
 ##  ✨ Key Features
 
-- FastAPI-based secure transaction scoring API
+- FastAPI-based secu re transaction scoring API
 - Rule-based threat detection:
   - Velocity anomalies
   - Geo-IP changes
