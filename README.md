@@ -90,7 +90,7 @@ uvicorn securebank.main:app --reload --port 8000
 
 ---
 
-##  API Example
+##   API Example
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/score -H "Content-Type: application/json" -d '{
@@ -103,7 +103,7 @@ curl -X POST http://localhost:8000/api/v1/score -H "Content-Type: application/js
 ```
 ---
 
-##  Response:
+##   Response:
 
 ```json
 {
