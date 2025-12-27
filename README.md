@@ -63,13 +63,17 @@ flowchart LR
   B --> E["Data Storage (CSV / SQLite)"]
   B --> F["Monitoring (Prometheus / Grafana - optional)"]
 ```
+```
 docker compose up --build
+```
 
+```
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn securebank.main:app --reload --port 8000
-
+```
+```
 curl -X POST http://localhost:8000/api/v1/score \
   -H "Content-Type: application/json" \
   -d '{
@@ -79,13 +83,21 @@ curl -X POST http://localhost:8000/api/v1/score \
         "ip": "198.51.100.20",
         "device_id": "dev001"
       }'
+```
+
+```
 {
   "score": 80,
   "reasons": ["High amount", "Suspicious IP range"],
   "flags": { "high_risk": true }
 }
-pytest -q
+```
 
+```
+pytest -q
+```
+
+```
 src/
   securebank/
     main.py
@@ -107,6 +119,9 @@ docker-compose.yml
 requirements.txt
 LICENSE
 README.md
+```
 
+```
 cd sim/securebank-sim
 python runner.py
+```
