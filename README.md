@@ -13,7 +13,7 @@ This repository serves as **public research evidence**, **open-source contributi
 
 ---
 
-##  Academic Publication (Preprint)
+##  📄 Academic Publication (Preprint)
 
 **SecureBank**: A Financially-Aware Zero-Trust Architecture for High-Assurance Banking Systems
 
@@ -26,7 +26,7 @@ This repository contains the **companion implementation and simulation artifacts
 
 ---
 
-##  Objective
+##  🎯 Objective
 
 Detect suspicious financial activity and identity abuse in **simulated banking and fintech environments**:
 
@@ -37,7 +37,7 @@ Detect suspicious financial activity and identity abuse in **simulated banking a
 
 ---
 
-##  Key Features
+##  ✨ Key Features
 
 - FastAPI-based secure transaction scoring API
 - Rule-based threat detection:
@@ -63,7 +63,7 @@ See: `sim/securebank-sim/README.md`
 
 ---
 
-##  System Architecture
+##  🏗️ System Architecture
 
 ```mermaid
 flowchart LR
@@ -76,7 +76,7 @@ flowchart LR
 
 ---
 
-##  Quick Start
+##  🚀 Quick Start
 
 ### Using Docker (recommended)
 
@@ -99,7 +99,7 @@ uvicorn securebank.main:app --reload --port 8000
 
 ---
 
-##   API Example
+##   📡 API Example
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/score -H "Content-Type: application/json" -d '{
@@ -124,7 +124,7 @@ curl -X POST http://localhost:8000/api/v1/score -H "Content-Type: application/js
 
 ---
 
-##  Tests
+##  🧪 Tests
 
 Run tests with:
 
@@ -134,7 +134,7 @@ pytest -q
 
 ---
 
-##  Project Structure
+##  📁 Project Structure
 
 ```
 src/
@@ -162,7 +162,7 @@ README.md
 
 ---
 
-##  Simulation Module (Research)
+##  🔬 Simulation Module (Research Validation)
 
 ```bash
 cd sim/securebank-sim
@@ -171,7 +171,7 @@ python runner.py
 
 ---
 
-##  EB2-NIW Relevance
+##  🧩 EB2-NIW / EB1 Relevance
 
 This project demonstrates:
 
