@@ -12,6 +12,17 @@ SecureBank is an open-source cybersecurity research and engineering framework de
 This repository serves as **public research evidence**, **open-source contribution**, and a **simulation platform** for academic and industry use.
 
 ---
+## 🚀 Gemini 3 Hackathon – SecureBank Copilot
+
+This repository powers **SecureBank Copilot**, an AI-driven decision-support system created for the **Gemini 3 Hackathon**.
+
+The project demonstrates how generative AI can translate cyber incidents into **quantified financial loss, regulatory exposure, and executive decision paths** — before real damage occurs.
+
+### 🎥 Live Demo
+https://youtu.be/lFNKE2sfnkI
+
+### 🌐 Live Project
+https://www.biaotech.dev/securebank-copilot
 
 ##  📄 Academic Publication (Preprint)
 
